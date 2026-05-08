@@ -1,3 +1,6 @@
+// Load environment variables FIRST
+require('dotenv').config();
+
 const express = require('express');
 const connectDB = require('./src/config/database');
 const { errorHandler } = require('./src/middleware/errorHandler');
@@ -14,9 +17,6 @@ const swaggerUi = require('swagger-ui-express');
 const authRoutes = require('./src/routes/auth');
 const projectRoutes = require('./src/routes/projects');
 const taskRoutes = require('./src/routes/tasks');
-
-// Load environment variables
-require('dotenv').config();
 
 // Initialize Express app
 const app = express();
