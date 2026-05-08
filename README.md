@@ -106,5 +106,33 @@ SprintHub is designed with a **stateless architecture**, making it ready for hig
 
 ---
 
+## 🛠️ Git Workflow & Troubleshooting
+
+If you are having trouble committing your changes, follow these standard steps:
+
+### 1. Check for Changes
+Ensure you have actually saved your files and that Git sees the changes:
+```bash
+git status
+```
+
+### 2. Stage Your Changes
+If you see untracked files, add them to the staging area:
+```bash
+git add .
+```
+
+### 3. Commit with a Message
+```bash
+git commit -m "feat: updated project documentation and security"
+```
+
+### 4. Common Issues
+- **"Nothing to commit, working tree clean"**: This means all your changes are already committed or you haven't saved your files in the editor yet.
+- **Large File Errors**: Ensure `node_modules` is included in your `.gitignore` (this project already handles this).
+- **Authentication Issues**: If you can't push, ensure your GitHub CLI is logged in (`gh auth login`) or your SSH keys are set up.
+
+---
+
 ## 📄 License
 MIT License - Copyright (c) 2026 SprintHub Team
