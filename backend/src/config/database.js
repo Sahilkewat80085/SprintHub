@@ -1,30 +1,62 @@
-const mongoose = require('mongoose');
+const { createClient } = require('@supabase/supabase-js');
+
+// Initialize Supabase client
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
+// Helper function to convert between formats
+const supabaseToModel = (supabaseData, modelName) => {
+  if (!supabaseData) return null;
+  
+  // Convert Supabase format to Mongoose-like format
+  return {
+    _id: supabaseData.id,
+    ...supabaseData,
+    save: async function() {
+      const { data, error } = await supabase
+        .from(modelName)
+        .upsert(this, { onConflict: 'id' });
+      if (error) throw error;
+      return data[0];
+    },
+    deleteOne: async function() {
+      const { error } = await supabase
+        .from(modelName)
+        .delete()
+        .eq('id', this._id);
+      if (error) throw error;
+      return this;
+    },
+    populate: function(path) {
+      // This is a simplified version - in real implementation,
+      // you'd need to handle joins properly
+      return this;
+    }
+  };
+};
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-
-    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+    // Test connection by checking if we can access the service
+    const { data, error } = await supabase
+      .from('users')
+      .select('id')
+      .limit(1);
     
-    // Handle connection events
-    mongoose.connection.on('error', (err) => {
-      console.error('❌ MongoDB connection error:', err);
-    });
+    if (error) {
+      throw error;
+    }
 
-    mongoose.connection.on('disconnected', () => {
-      console.log('⚠️ MongoDB disconnected');
-    });
-
-    // Graceful shutdown
-    process.on('SIGINT', async () => {
-      await mongoose.connection.close();
-      console.log('🔌 MongoDB connection closed through app termination');
-      process.exit(0);
-    });
-
+    console.log('✅ Supabase Connected successfully');
+    
+    // Make supabase client available globally
+    global.supabase = supabase;
+    global.supabaseToModel = supabaseToModel;
+    
+    return supabase;
+    
   } catch (error) {
     console.error('❌ Database connection failed:', error.message);
     process.exit(1);
