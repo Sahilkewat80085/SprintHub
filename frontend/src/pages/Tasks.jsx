@@ -207,7 +207,7 @@ const Tasks = () => {
             
             <div className="flex items-center space-x-2">
               {/* Button visible if Admin OR if the current user is the assignee */}
-              {(currentUser?.role === 'admin' || isUserAssigned(task)) && (
+              {(currentUser?.role?.toLowerCase() === 'admin' || isUserAssigned(task)) && (
                 <button
                   onClick={() => openStatusModal(task)}
                   className="btn btn-secondary text-xs py-1.5 px-3 flex items-center bg-white border border-gray-200 hover:bg-gray-50 hover:border-blue-300 transition-all shadow-sm"
@@ -217,7 +217,7 @@ const Tasks = () => {
                 </button>
               )}
               
-              {currentUser?.role === 'admin' && (
+              {currentUser?.role?.toLowerCase() === 'admin' && (
                 <>
                   <Link
                     to={`/tasks/${task._id}/edit`}
@@ -249,12 +249,12 @@ const Tasks = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Tasks</h1>
           <p className="mt-1 text-sm text-gray-600">
-            {currentUser?.role === 'admin' 
+            {currentUser?.role?.toLowerCase() === 'admin' 
               ? 'Manage and assign tasks across all projects'
               : 'Track your assigned tasks and update status'}
           </p>
         </div>
-        {currentUser?.role === 'admin' && (
+        {currentUser?.role?.toLowerCase() === 'admin' && (
           <Link
             to="/tasks/new"
             className="btn btn-primary flex items-center shadow-md hover:shadow-lg transition-all"

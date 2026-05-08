@@ -66,7 +66,7 @@ const Register = () => {
                     minLength: { value: 2, message: 'Name too short' },
                   })}
                   type="text"
-                  className={`form-input pl-10 focus:ring-2 focus:ring-blue-500 ${errors.name ? 'border-red-500' : 'border-gray-200'}`}
+                  className={`form-input !pl-10 focus:ring-2 focus:ring-blue-500 ${errors.name ? 'border-red-500' : 'border-gray-200'}`}
                   placeholder="John Doe"
                 />
               </div>
@@ -87,7 +87,7 @@ const Register = () => {
                     pattern: { value: /^\S+@\S+$/i, message: 'Invalid email' },
                   })}
                   type="email"
-                  className={`form-input pl-10 focus:ring-2 focus:ring-blue-500 ${errors.email ? 'border-red-500' : 'border-gray-200'}`}
+                  className={`form-input !pl-10 focus:ring-2 focus:ring-blue-500 ${errors.email ? 'border-red-500' : 'border-gray-200'}`}
                   placeholder="john@example.com"
                 />
               </div>
@@ -105,7 +105,7 @@ const Register = () => {
                 </div>
                 <select
                   {...register('role', { required: 'Please select a role' })}
-                  className="form-input pl-10 bg-gray-50 border-gray-200 focus:ring-2 focus:ring-blue-500 appearance-none"
+                  className="form-input !pl-10 bg-gray-50 border-gray-200 focus:ring-2 focus:ring-blue-500 appearance-none"
                 >
                   <option value="employee">Employee (Task Execution)</option>
                   <option value="admin">Admin (Project Management)</option>
@@ -135,7 +135,7 @@ const Register = () => {
                     minLength: { value: 6, message: 'Min 6 characters' },
                   })}
                   type={showPassword ? 'text' : 'password'}
-                  className={`form-input pl-10 pr-10 focus:ring-2 focus:ring-blue-500 ${errors.password ? 'border-red-500' : 'border-gray-200'}`}
+                  className={`form-input !pl-10 pr-10 focus:ring-2 focus:ring-blue-500 ${errors.password ? 'border-red-500' : 'border-gray-200'}`}
                   placeholder="••••••••"
                 />
                 <button

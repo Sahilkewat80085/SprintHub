@@ -68,7 +68,7 @@ const Login = () => {
                   })}
                   type="email"
                   autoComplete="email"
-                  className={`form-input pl-10 ${errors.email ? 'border-red-500' : ''}`}
+                  className={`form-input !pl-10 ${errors.email ? 'border-red-500' : ''}`}
                   placeholder="Enter your email"
                 />
               </div>
@@ -91,7 +91,7 @@ const Login = () => {
                   })}
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="current-password"
-                  className={`form-input pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
+                  className={`form-input !pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
                   placeholder="Enter your password"
                 />
                 <button

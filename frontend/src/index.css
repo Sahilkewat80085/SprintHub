@@ -92,7 +92,9 @@
 
 /* Form styles */
 .form-input {
-  @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+  @apply w-full py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
 }
 
 .form-error {

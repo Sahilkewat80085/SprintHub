@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import { projectsAPI, tasksAPI } from '../services/api'
 import {
   FolderOpen,
@@ -11,6 +12,7 @@ import {
 } from 'lucide-react'
 
 const Dashboard = () => {
+  const { user } = useAuth()
   const [stats, setStats] = useState({
     projects: { totalProjects: 0, activeProjects: 0, completedProjects: 0 },
     tasks: { totalTasks: 0, pendingTasks: 0, inProgressTasks: 0, completedTasks: 0 },
@@ -88,15 +90,17 @@ const Dashboard = () => {
             Welcome back! Here's an overview of your projects and tasks.
           </p>
         </div>
-        <div className="flex space-x-3">
-          <Link
-            to="/projects/new"
-            className="btn btn-primary flex items-center"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            New Project
-          </Link>
-        </div>
+        {user?.role?.toLowerCase() === 'admin' && (
+          <div className="flex space-x-3">
+            <Link
+              to="/projects/new"
+              className="btn btn-primary flex items-center"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              New Project
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Stats Grid */}
