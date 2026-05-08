@@ -86,7 +86,7 @@ SprintHub is designed with a **stateless architecture**, making it ready for hig
 ### Setup
 1. **Clone the Repo**
    ```bash
-   git clone https://github.com/yourusername/SprintHub.git
+   https://github.com/Sahilkewat80085/SprintHub.git
    ```
 
 2. **Backend Configuration**
