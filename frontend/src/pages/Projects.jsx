@@ -104,7 +104,7 @@ const Projects = () => {
               </span>
             </div>
             
-            {currentUser?.role === 'admin' && (
+            {currentUser?.role?.toLowerCase() === 'admin' && (
               <div className="flex items-center space-x-2">
                 <Link
                   to={`/projects/${project._id}/edit`}
@@ -138,7 +138,7 @@ const Projects = () => {
             Manage your projects and track progress
           </p>
         </div>
-        {currentUser?.role === 'admin' && (
+        {currentUser?.role?.toLowerCase() === 'admin' && (
           <Link
             to="/projects/new"
             className="btn btn-primary flex items-center"
@@ -227,7 +227,7 @@ const Projects = () => {
               ? 'Try adjusting your search or filters'
               : 'Create your first project to get started'}
           </p>
-          {!searchTerm && !statusFilter && !priorityFilter && currentUser?.role === 'admin' && (
+          {!searchTerm && !statusFilter && !priorityFilter && currentUser?.role?.toLowerCase() === 'admin' && (
             <Link
               to="/projects/new"
               className="btn btn-primary"

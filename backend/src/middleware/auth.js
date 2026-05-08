@@ -30,6 +30,7 @@ const verifyToken = async (req, res, next) => {
     }
 
     // Add user to request object
+    console.log(`[AUTH] Authenticated user: ${user.email}, Role: ${user.role}`);
     req.user = user;
     next();
   } catch (error) {

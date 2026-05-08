@@ -17,7 +17,7 @@ const Register = () => {
     watch,
   } = useForm({
     defaultValues: {
-      role: 'user'
+      role: 'employee'
     }
   })
 
@@ -107,7 +107,7 @@ const Register = () => {
                   {...register('role', { required: 'Please select a role' })}
                   className="form-input pl-10 bg-gray-50 border-gray-200 focus:ring-2 focus:ring-blue-500 appearance-none"
                 >
-                  <option value="user">Employee (Task Execution)</option>
+                  <option value="employee">Employee (Task Execution)</option>
                   <option value="admin">Admin (Project Management)</option>
                 </select>
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">

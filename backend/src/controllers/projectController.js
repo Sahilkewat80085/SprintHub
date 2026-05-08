@@ -67,8 +67,10 @@ const { AppError } = require('../utils/errorHandler');
  *         description: Internal server error
  */
 const createProject = catchAsync(async (req, res, next) => {
+  console.log(`[PROJECT] Create attempt by user ${req.user.email} with role ${req.user.role}`);
+  
   // Only admin can create projects
-  if (req.user.role !== 'admin') {
+  if (req.user.role?.toLowerCase() !== 'admin') {
     return next(new AppError('Access denied. Only admins can create projects.', 403));
   }
 

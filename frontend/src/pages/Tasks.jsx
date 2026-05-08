@@ -168,7 +168,12 @@ const Tasks = () => {
               <div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-700 mb-4 border border-blue-100 flex items-start">
                 <MessageSquare className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0 text-blue-500" />
                 <div>
-                  <span className="font-bold block text-xs uppercase tracking-wider mb-1">Latest Progress Report</span>
+                  <span className="font-bold block text-xs uppercase tracking-wider mb-1">
+                    Latest Progress Report from {
+                      task.assignedTo?.name || 
+                      (typeof task.assignedTo === 'object' ? 'Assigned User' : 'Assigned User')
+                    }
+                  </span>
                   {task.statusMessage}
                 </div>
               </div>

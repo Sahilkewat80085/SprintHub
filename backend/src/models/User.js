@@ -58,7 +58,7 @@ class User {
       this.name = supabaseData.name;
       this.email = supabaseData.email;
       this.password = supabaseData.password;
-      this.role = supabaseData.role || 'user';
+      this.role = supabaseData.role || 'employee';
       this.created_at = supabaseData.created_at;
       this.updated_at = supabaseData.updated_at;
     }

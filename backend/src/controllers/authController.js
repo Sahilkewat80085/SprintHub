@@ -104,7 +104,7 @@ const createSendToken = (user, statusCode, res) => {
 const register = catchAsync(async (req, res, next) => {
   const { name, email, password, role } = req.body;
 
-  console.log('Registration attempt:', { name, email, role: role || 'user' });
+  console.log('Registration attempt:', { name, email, role: role || 'employee' });
 
   // Check if user already exists
   const existingUser = await User.findByEmail(email);
@@ -118,7 +118,7 @@ const register = catchAsync(async (req, res, next) => {
       name,
       email,
       password, 
-      role: role || 'user'
+      role: role || 'employee'
     });
 
     console.log('User created successfully:', user);

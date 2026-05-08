@@ -70,12 +70,14 @@ const { AppError } = require('../utils/errorHandler');
  *         description: Internal server error
  */
 const createTask = catchAsync(async (req, res, next) => {
-  const { title, description, status, assignedTo, projectId } = req.body;
-
-  // Check if user is admin
-  if (req.user.role !== 'admin') {
+  console.log(`[TASK] Create attempt by user ${req.user.email} with role ${req.user.role}`);
+  
+  // Only admin can create tasks
+  if (req.user.role?.toLowerCase() !== 'admin') {
     return next(new AppError('Access denied. Only admins can create tasks.', 403));
   }
+
+  const { title, description, status, assignedTo, projectId } = req.body;
 
   // Check if project exists
   const project = await Project.findById(projectId);

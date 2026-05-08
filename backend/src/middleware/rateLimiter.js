@@ -4,14 +4,14 @@ const rateLimit = require('express-rate-limit');
  * General rate limiter for all API endpoints
  */
 const rateLimiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 1000, // 1000 requests per minute
   message: {
     success: false,
-    message: 'Too many requests from this IP, please try again later.'
+    message: 'Too many requests, please try again in a minute.'
   },
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 /**

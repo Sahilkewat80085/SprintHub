@@ -44,9 +44,9 @@ class Task {
       this.title = supabaseData.title;
       this.description = supabaseData.description;
       this.status = supabaseData.status;
-      this.assignedTo = supabaseData.assigned_to || supabaseData.assignedTo;
-      this.projectId = supabaseData.project_id || supabaseData.projectId;
-      this.createdBy = supabaseData.created_by;
+      this.assignedTo = supabaseData.assignedTo || supabaseData.assigned_to;
+      this.projectId = supabaseData.projectId || supabaseData.project_id;
+      this.createdBy = supabaseData.createdBy || supabaseData.created_by;
       this.statusMessage = supabaseData.status_message || supabaseData.statusMessage || '';
       this.createdAt = supabaseData.created_at || supabaseData.createdAt;
       this.updatedAt = supabaseData.updated_at || supabaseData.updatedAt;
@@ -115,6 +115,11 @@ class Task {
     }
 
     const { data, error } = await supabaseQuery;
+    
+    if (data && data.length > 0) {
+      console.log('[DB] Raw Task Data Sample:', JSON.stringify(data[0], null, 2));
+    }
+    
     if (error) throw error;
     return data ? data.map(t => new Task(t)) : [];
   }

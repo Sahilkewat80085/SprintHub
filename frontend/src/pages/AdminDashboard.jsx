@@ -23,6 +23,7 @@ const AdminDashboard = () => {
     tasks: { totalTasks: 0, pendingTasks: 0, inProgressTasks: 0, completedTasks: 0 },
   })
   const [users, setUsers] = useState([])
+  const [projects, setProjects] = useState([])
   const [allTasks, setAllTasks] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -33,14 +34,16 @@ const AdminDashboard = () => {
   const fetchAdminData = async () => {
     try {
       setLoading(true)
-      const [usersRes, projectStats, taskStats, allTasksRes] = await Promise.all([
+      const [usersRes, projectsRes, projectStats, taskStats, allTasksRes] = await Promise.all([
         authAPI.getAllUsers(),
+        projectsAPI.getProjects({ limit: 100 }),
         projectsAPI.getProjectStats(),
         tasksAPI.getTaskStats(),
         tasksAPI.getTasks({ limit: 100 }) // Get latest tasks to monitor
       ])
 
       setUsers(usersRes.data.data.users)
+      setProjects(projectsRes.data.data.projects)
       setAllTasks(allTasksRes.data.data.tasks)
       setStats({
         users: { count: usersRes.data.data.count },
@@ -160,7 +163,11 @@ const AdminDashboard = () => {
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {users.map((user) => {
-                      const userTasks = allTasks.filter(t => t.assignedTo && t.assignedTo._id === user._id);
+                      const userId = user._id || user.id;
+                      const userTasks = allTasks.filter(t => {
+                        const assigneeId = t.assignedTo?._id || t.assignedTo?.id || t.assignedTo;
+                        return assigneeId === userId;
+                      });
                       const activeTasks = userTasks.filter(t => t.status !== 'completed').length;
                       
                       return (
@@ -178,14 +185,16 @@ const AdminDashboard = () => {
                           </td>
                           <td className="px-6 py-4">
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+                              user.role?.toLowerCase() === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
                             }`}>
-                              {user.role}
+                              {user.role?.toLowerCase() === 'admin' ? 'admin' : 'employee'}
                             </span>
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-600 font-medium">
-                            {/* In a real app we'd fetch project count for user */}
-                            -
+                            {
+                              // Filter projects where user is a member
+                              projects.filter(p => p.members?.some(m => (m._id || m.id || m) === userId)).length
+                            }
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center">
@@ -239,7 +248,7 @@ const AdminDashboard = () => {
                           <div className="mt-3 bg-blue-50 border-l-4 border-blue-500 p-3 rounded-r-lg">
                             <p className="text-xs font-bold text-blue-700 flex items-center mb-1">
                               <MessageSquare className="h-3 w-3 mr-1" />
-                              LATEST UPDATE
+                              UPDATE FROM {task.assignedTo?.name?.toUpperCase() || 'ASSIGNEE'}
                             </p>
                             <p className="text-sm text-blue-800 italic">"{task.statusMessage}"</p>
                           </div>

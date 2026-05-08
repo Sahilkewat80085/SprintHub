@@ -37,10 +37,10 @@ const Layout = () => {
       icon: CheckSquare,
       current: location.pathname === '/tasks',
     },
-    ...(user?.role === 'admin'
+    ...(user?.role?.toLowerCase() === 'admin'
       ? [
           {
-            name: 'Admin',
+            name: 'Admin Panel',
             href: '/admin',
             icon: Users,
             current: location.pathname === '/admin',
@@ -119,7 +119,9 @@ const Layout = () => {
             </div>
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-              <p className="text-xs text-gray-500">{user?.email}</p>
+              <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-0.5">
+                {user?.role?.toLowerCase() === 'admin' ? 'admin' : 'employee'}
+              </p>
             </div>
           </div>
           <button
