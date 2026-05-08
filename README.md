@@ -6,11 +6,11 @@ SprintHub is a modern, full-stack project management application designed for ag
 
 ### Admin Command Center
 The central hub for administrators to monitor workforce performance, global project health, and live task activity.
-![Admin Panel](docs/images/admin_panel.png)
+![Admin Panel](./docs/images/admin_panel.png)
 
 ### Employee Dashboard
 A personalized workspace for employees to track their assigned tasks and submit progress reports.
-![Employee Dashboard](docs/images/dashboard.png)
+![Employee Dashboard](./docs/images/dashboard.png)
 
 ---
 
@@ -131,8 +131,3 @@ git commit -m "feat: updated project documentation and security"
 - **"Nothing to commit, working tree clean"**: This means all your changes are already committed or you haven't saved your files in the editor yet.
 - **Large File Errors**: Ensure `node_modules` is included in your `.gitignore` (this project already handles this).
 - **Authentication Issues**: If you can't push, ensure your GitHub CLI is logged in (`gh auth login`) or your SSH keys are set up.
-
----
-
-## 📄 License
-MIT License - Copyright (c) 2026 SprintHub Team
