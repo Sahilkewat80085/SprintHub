@@ -1,489 +1,110 @@
-# SprintHub 🚀
+# 🚀 SprintHub - Secure Role-Based Project Management
 
-A production-style full-stack project management platform designed for developer teams, hackathon groups, engineering teams, and startups to manage projects, tasks, and team progress.
+SprintHub is a modern, full-stack project management application designed for agile teams. It features a robust role-based access control (RBAC) system that separates administrative management from employee task execution, ensuring a secure and supervised workflow.
 
-## 🎯 Project Overview
+## 📸 Project Showcase
 
-SprintHub demonstrates scalable backend architecture, secure authentication, role-based authorization, clean REST API design, and frontend integration with production-ready engineering practices.
+### Admin Command Center
+The central hub for administrators to monitor workforce performance, global project health, and live task activity.
+![Admin Panel](docs/images/admin_panel.png)
 
-### Key Features
-
-- **🔐 Secure Authentication**: JWT-based auth with bcrypt password hashing
-- **👥 Role-Based Authorization**: User and Admin roles with proper access control
-- **📋 Project Management**: Create, update, delete projects with status tracking
-- **✅ Task Management**: Comprehensive task management with assignment capabilities
-- **📊 Dashboard Analytics**: Real-time statistics and progress tracking
-- **🛡️ Security First**: Rate limiting, input sanitization, and security headers
-- **📚 API Documentation**: Complete Swagger/OpenAPI documentation
-- **🎨 Modern UI**: Clean, responsive React frontend with Tailwind CSS
-
-## 🏗️ Architecture
-
-### Backend Architecture
-
-```
-backend/
-├── src/
-│   ├── config/          # Database and server configuration
-│   ├── controllers/      # Route handlers and business logic
-│   ├── middleware/       # Authentication, validation, security
-│   ├── models/          # MongoDB schemas and data models
-│   ├── routes/          # API route definitions
-│   ├── validators/       # Input validation rules
-│   ├── utils/           # Utility functions and error handling
-│   └── app.js           # Express app configuration
-├── server.js            # Server entry point
-├── package.json          # Dependencies and scripts
-└── .env.example         # Environment variables template
-```
-
-### Frontend Architecture
-
-```
-frontend/
-├── src/
-│   ├── components/       # Reusable UI components
-│   ├── context/         # React context for state management
-│   ├── pages/           # Page components
-│   ├── services/        # API service layer
-│   ├── hooks/           # Custom React hooks
-│   ├── App.jsx          # Main app component
-│   └── main.jsx         # App entry point
-├── public/              # Static assets
-├── package.json          # Dependencies and scripts
-└── vite.config.js       # Vite configuration
-```
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Node.js 16.0.0 or higher
-- MongoDB 4.4 or higher
-- npm or yarn
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd SprintHub
-   ```
-
-2. **Install Backend Dependencies**
-   ```bash
-   cd backend
-   npm install
-   ```
-
-3. **Install Frontend Dependencies**
-   ```bash
-   cd ../frontend
-   npm install
-   ```
-
-4. **Setup Environment Variables**
-   ```bash
-   cd ../backend
-   cp .env.example .env
-   ```
-   
-   Edit `.env` with your configuration:
-   ```env
-   PORT=5000
-   NODE_ENV=development
-   MONGODB_URI=mongodb://localhost:27017/sprinthub
-   JWT_SECRET=your-super-secret-jwt-key
-   JWT_EXPIRE=7d
-   FRONTEND_URL=http://localhost:3000
-   ```
-
-5. **Start MongoDB**
-   ```bash
-   # Make sure MongoDB is running
-   mongod
-   ```
-
-6. **Run the Application**
-   
-   **Terminal 1 - Backend:**
-   ```bash
-   cd backend
-   npm run dev
-   ```
-   
-   **Terminal 2 - Frontend:**
-   ```bash
-   cd frontend
-   npm run dev
-   ```
-
-7. **Access the Application**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:5000
-   - API Documentation: http://localhost:5000/api-docs
-
-## 📚 API Documentation
-
-### Base URL
-```
-http://localhost:5000/api/v1
-```
-
-### Authentication Endpoints
-
-#### Register User
-```http
-POST /auth/register
-Content-Type: application/json
-
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "password": "Password123",
-  "role": "user"
-}
-```
-
-#### Login User
-```http
-POST /auth/login
-Content-Type: application/json
-
-{
-  "email": "john@example.com",
-  "password": "Password123"
-}
-```
-
-#### Get Current User
-```http
-GET /auth/me
-Authorization: Bearer <token>
-```
-
-### Project Endpoints
-
-#### Get All Projects
-```http
-GET /projects?page=1&limit=10&status=active&priority=high
-Authorization: Bearer <token>
-```
-
-#### Create Project
-```http
-POST /projects
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "title": "E-commerce Platform",
-  "description": "Building a modern e-commerce platform",
-  "priority": "high",
-  "status": "active",
-  "members": ["userId1", "userId2"]
-}
-```
-
-#### Update Project
-```http
-PUT /projects/:id
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "title": "Updated Project Title",
-  "status": "completed"
-}
-```
-
-#### Delete Project
-```http
-DELETE /projects/:id
-Authorization: Bearer <token>
-```
-
-### Task Endpoints
-
-#### Get All Tasks
-```http
-GET /tasks?page=1&limit=10&status=pending&projectId=123
-Authorization: Bearer <token>
-```
-
-#### Create Task
-```http
-POST /tasks
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "title": "Implement user authentication",
-  "description": "Add JWT-based authentication",
-  "status": "pending",
-  "assignedTo": "userId",
-  "projectId": "projectId"
-}
-```
-
-#### Update Task Status
-```http
-PATCH /tasks/:id/status
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "status": "completed"
-}
-```
-
-#### Delete Task
-```http
-DELETE /tasks/:id
-Authorization: Bearer <token>
-```
-
-## 🔐 Security Implementation
-
-### Authentication & Authorization
-
-- **JWT Tokens**: Secure token-based authentication
-- **Password Hashing**: bcrypt with salt rounds (12)
-- **Role-Based Access**: User and Admin roles
-- **Token Expiration**: Configurable JWT expiration
-- **Protected Routes**: Middleware for route protection
-
-### Security Middleware
-
-- **Helmet**: Security headers
-- **CORS**: Cross-origin resource sharing configuration
-- **Rate Limiting**: Prevent brute force attacks
-- **Input Sanitization**: XSS and injection prevention
-- **MongoDB Sanitization**: NoSQL injection protection
-- **Parameter Pollution**: HPP middleware
-
-### Validation
-
-- **Express Validator**: Comprehensive input validation
-- **Custom Validators**: Business logic validation
-- **Sanitization**: Data cleaning and normalization
-- **Error Handling**: Centralized error responses
-
-## 🗄️ Database Schema
-
-### User Model
-```javascript
-{
-  name: String (required, 2-50 chars),
-  email: String (required, unique, email format),
-  password: String (required, hashed, min 6 chars),
-  role: String (enum: ['user', 'admin'], default: 'user'),
-  createdAt: Date,
-  updatedAt: Date
-}
-```
-
-### Project Model
-```javascript
-{
-  title: String (required, 3-100 chars),
-  description: String (required, max 1000 chars),
-  priority: String (enum: ['low', 'medium', 'high']),
-  status: String (enum: ['planned', 'active', 'completed']),
-  createdBy: ObjectId (ref: 'User', required),
-  members: [ObjectId] (ref: 'User'),
-  createdAt: Date,
-  updatedAt: Date
-}
-```
-
-### Task Model
-```javascript
-{
-  title: String (required, 3-100 chars),
-  description: String (required, max 1000 chars),
-  status: String (enum: ['pending', 'in-progress', 'completed']),
-  assignedTo: ObjectId (ref: 'User'),
-  projectId: ObjectId (ref: 'Project', required),
-  createdBy: ObjectId (ref: 'User', required),
-  createdAt: Date,
-  updatedAt: Date
-}
-```
-
-## 🧪 Testing
-
-### Backend Testing
-```bash
-cd backend
-npm test                 # Run all tests
-npm run test:watch      # Run tests in watch mode
-npm run lint            # Run ESLint
-npm run lint:fix        # Fix linting issues
-```
-
-### Frontend Testing
-```bash
-cd frontend
-npm test                 # Run all tests
-npm run lint            # Run ESLint
-npm run lint:fix        # Fix linting issues
-```
-
-## 🚀 Deployment
-
-### Environment Variables
-
-#### Backend (.env)
-```env
-# Server Configuration
-PORT=5000
-NODE_ENV=production
-
-# Database Configuration
-MONGODB_URI=mongodb://your-mongodb-connection-string
-
-# JWT Configuration
-JWT_SECRET=your-production-jwt-secret
-JWT_EXPIRE=7d
-
-# Frontend Configuration
-FRONTEND_URL=https://your-domain.com
-API_URL=https://api.your-domain.com
-
-# Rate Limiting
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
-```
-
-#### Frontend (.env)
-```env
-VITE_API_URL=https://api.your-domain.com
-```
-
-### Production Deployment
-
-#### Backend (Node.js)
-```bash
-cd backend
-npm install --production
-npm start
-```
-
-#### Frontend (Vite Build)
-```bash
-cd frontend
-npm run build
-# Deploy the 'dist' folder to your web server
-```
-
-### Docker Deployment
-
-#### Dockerfile (Backend)
-```dockerfile
-FROM node:16-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-COPY . .
-EXPOSE 5000
-CMD ["npm", "start"]
-```
-
-#### Docker Compose
-```yaml
-version: '3.8'
-services:
-  mongodb:
-    image: mongo:latest
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
-
-  backend:
-    build: ./backend
-    ports:
-      - "5000:5000"
-    depends_on:
-      - mongodb
-    environment:
-      - MONGODB_URI=mongodb://mongodb:27017/sprinthub
-
-  frontend:
-    build: ./frontend
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
-
-volumes:
-  mongodb_data:
-```
-
-## 📈 Scalability Notes
-
-### Backend Scalability
-
-- **Microservices Ready**: Modular architecture supports service separation
-- **Database Indexing**: Optimized queries with proper indexes
-- **Connection Pooling**: MongoDB connection management
-- **Caching Ready**: Redis integration points
-- **Load Balancing**: Stateless design for horizontal scaling
-
-### Frontend Scalability
-
-- **Component Architecture**: Reusable, maintainable components
-- **State Management**: Context API for scalable state
-- **Code Splitting**: Lazy loading for performance
-- **API Layer**: Centralized API management
-
-## 🛠️ Development Workflow
-
-### Git Workflow
-```bash
-git checkout -b feature/new-feature
-# Make changes
-git add .
-git commit -m "feat: add new feature"
-git push origin feature/new-feature
-# Create pull request
-```
-
-### Code Quality
-- ESLint for code linting
-- Prettier for code formatting
-- Git hooks for pre-commit checks
-- Automated testing on CI/CD
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Ensure all tests pass
-6. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🆘 Support
-
-For support and questions:
-- Create an issue in the repository
-- Email: support@sprinthub.com
-- Documentation: http://localhost:5000/api-docs
-
-## 🙏 Acknowledgments
-
-- Express.js team for the excellent framework
-- MongoDB for the robust database
-- React team for the amazing UI library
-- Tailwind CSS for the utility-first CSS framework
-- OpenAPI/Swagger for API documentation standards
+### Employee Dashboard
+A personalized workspace for employees to track their assigned tasks and submit progress reports.
+![Employee Dashboard](docs/images/dashboard.png)
 
 ---
 
-**Built with ❤️ by the SprintHub Team**
+## 🛠️ Tech Stack
+
+### Backend (Node.js & Express)
+- **Framework**: Express.js
+- **Database**: Supabase (PostgreSQL) with custom Model abstraction.
+- **Authentication**: JWT (JSON Web Tokens) with `bcryptjs` password hashing.
+- **Security**: Rate limiting, Helmet, CORS, and Case-Insensitive Role Authorization.
+- **Documentation**: Swagger/OpenAPI 3.0.
+
+### Frontend (React)
+- **Framework**: React 18 with Vite.
+- **Styling**: Tailwind CSS for a premium, responsive design.
+- **Icons**: Lucide-React for modern iconography.
+- **State Management**: React Context API (Auth Provider).
+- **Routing**: React Router 6.
+
+---
+
+## ✨ Key Features
+
+### 🔐 Advanced Authentication & RBAC
+- **Strict Roles**: Dynamic "Admin" vs "Employee" roles.
+- **Secure Hashing**: Passwords are never stored in plain text (Bcrypt).
+- **Lazy Migration**: Automatic hash-upgrading for legacy accounts upon login.
+- **Case-Insensitivity**: Authorization logic handles variations in role naming seamlessly.
+
+### 📊 Admin Command Center
+- **Workforce Intelligence**: Real-time tracking of active tasks and project counts per employee.
+- **Live Activity Feed**: A chronological stream of status updates from the entire team.
+- **System Health**: Visual indicators for task completion rates and mission-critical milestones.
+
+### 📝 Task & Project Management
+- **Admin-Only Controls**: Projects and tasks can only be created, edited, or deleted by Admins.
+- **Employee Updates**: Employees have dedicated access to update their task status and post progress messages.
+- **Rich Status Tracking**: Integrated status badges (Pending, In-Progress, Completed) with visual icons.
+
+---
+
+## 📖 API Documentation
+
+SprintHub comes with built-in **Swagger UI** for easy API testing and integration.
+
+- **URL**: `http://localhost:5000/api-docs` (when running locally)
+- **Endpoints**:
+  - `POST /api/v1/auth/register`: User registration.
+  - `POST /api/v1/auth/login`: Secure login.
+  - `GET /api/v1/projects`: List projects (Auth required).
+  - `POST /api/v1/tasks`: Create tasks (Admin only).
+  - `PATCH /api/v1/tasks/:id/status`: Update task progress.
+
+---
+
+## 📈 Scalability & Future Growth
+
+SprintHub is designed with a **stateless architecture**, making it ready for high-scale environments:
+
+1.  **Microservices Readiness**: The separation of project and task controllers allows for easy extraction into independent microservices as the load grows.
+2.  **Caching Strategy**: Implementing Redis for the "Admin Panel" stats would significantly reduce database load for high-frequency dashboard refreshes.
+3.  **Load Balancing**: Stateless JWT authentication allows for seamless horizontal scaling across multiple server instances behind a load balancer (e.g., Nginx or AWS ALB).
+4.  **Database Partitioning**: As task counts reach millions, PostgreSQL partitioning by `projectId` can ensure sub-millisecond query performance.
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js (v14+)
+- Supabase Account
+
+### Setup
+1. **Clone the Repo**
+   ```bash
+   git clone https://github.com/yourusername/SprintHub.git
+   ```
+
+2. **Backend Configuration**
+   ```bash
+   cd backend
+   npm install
+   # Create .env file with SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and JWT_SECRET
+   npm run dev
+   ```
+
+3. **Frontend Configuration**
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+---
+
+## 📄 License
+MIT License - Copyright (c) 2026 SprintHub Team

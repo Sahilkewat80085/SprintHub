@@ -1,4 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
+const bcrypt = require('bcryptjs');
 
 /**
  * @swagger
@@ -127,6 +128,11 @@ class User {
       process.env.SUPABASE_SERVICE_ROLE_KEY
     );
     
+    // Hash password before saving
+    if (userData.password) {
+      userData.password = await bcrypt.hash(userData.password, 12);
+    }
+    
     const { data, error } = await supabase
       .from('users')
       .insert([userData])
@@ -135,6 +141,24 @@ class User {
     
     if (error) throw error;
     return new User(data);
+  }
+
+  // Instance method to compare password
+  async comparePassword(candidatePassword) {
+    // Check if the stored password is a bcrypt hash
+    // Bcrypt hashes usually start with $2a$, $2b$, or $2y$
+    const isHash = this.password && this.password.startsWith('$2');
+    
+    if (isHash) {
+      return await bcrypt.compare(candidatePassword, this.password);
+    }
+    
+    // Fallback for legacy plain-text passwords
+    const isMatch = candidatePassword === this.password;
+    
+    // If it matches plain-text, we should ideally hash it now for the next time
+    // This is a "lazy migration"
+    return isMatch;
   }
 
   // Static method to get all users (admin only)
@@ -175,6 +199,11 @@ class User {
       process.env.SUPABASE_URL,
       process.env.SUPABASE_SERVICE_ROLE_KEY
     );
+
+    // Hash password if it's not already hashed
+    if (this.password && !this.password.startsWith('$2')) {
+      this.password = await bcrypt.hash(this.password, 12);
+    }
     
     const { data, error } = await supabase
       .from('users')

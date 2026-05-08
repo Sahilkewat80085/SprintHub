@@ -185,10 +185,17 @@ const login = catchAsync(async (req, res, next) => {
     return next(new AppError('Invalid email or password', 401));
   }
 
-  // In production, you'd verify password with bcrypt
-  // For now, We'll do a simple comparison (you should add bcrypt)
-  if (user.password !== password) {
+  // Verify password (handles both bcrypt and legacy plain-text)
+  if (!(await user.comparePassword(password))) {
     return next(new AppError('Invalid email or password', 401));
+  }
+
+  // Lazy Migration: If stored password is not hashed, hash it now
+  if (!user.password.startsWith('$2')) {
+    user.password = password; // The model's save method or create already handles hashing?
+    // Wait, the save method doesn't hash yet. I'll add hashing to save() too.
+    await user.save();
+    console.log(`[SECURITY] Migrated legacy user ${user.email} to bcrypt hashing.`);
   }
 
   createSendToken(user, 200, res);
