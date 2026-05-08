@@ -13,11 +13,11 @@ const router = express.Router();
  */
 
 // Protected routes
-router.post('/', verifyToken, validateProject, checkValidation, projectController.createProject);
+router.post('/', verifyToken, authorizeRoles('admin'), validateProject, checkValidation, projectController.createProject);
 router.get('/', verifyToken, projectController.getProjects);
 router.get('/stats', verifyToken, projectController.getProjectStats);
 router.get('/:id', verifyToken, checkProjectAccess, projectController.getProject);
-router.put('/:id', verifyToken, checkProjectAccess, projectController.updateProject);
-router.delete('/:id', verifyToken, checkProjectAccess, projectController.deleteProject);
+router.put('/:id', verifyToken, authorizeRoles('admin'), checkProjectAccess, projectController.updateProject);
+router.delete('/:id', verifyToken, authorizeRoles('admin'), checkProjectAccess, projectController.deleteProject);
 
 module.exports = router;

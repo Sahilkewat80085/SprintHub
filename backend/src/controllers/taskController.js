@@ -72,15 +72,15 @@ const { AppError } = require('../utils/errorHandler');
 const createTask = catchAsync(async (req, res, next) => {
   const { title, description, status, assignedTo, projectId } = req.body;
 
-  // Check if project exists and user has access
+  // Check if user is admin
+  if (req.user.role !== 'admin') {
+    return next(new AppError('Access denied. Only admins can create tasks.', 403));
+  }
+
+  // Check if project exists
   const project = await Project.findById(projectId);
   if (!project) {
     return next(new AppError('Project not found', 404));
-  }
-
-  // Check if user has access to the project
-  if (req.user.role !== 'admin' && !project.isMember(req.user.id)) {
-    return next(new AppError('Access denied. You are not a member of this project.', 403));
   }
 
   // Validate assigned user if provided
@@ -366,9 +366,28 @@ const updateTask = catchAsync(async (req, res, next) => {
     return next(new AppError('Task not found', 404));
   }
 
-  // Check permissions (only creator or admin can update)
-  if (!task.canModify(req.user.id, req.user.role)) {
-    return next(new AppError('Access denied. Only task creator can update the task.', 403));
+  // Check permissions
+  const isAdmin = req.user.role === 'admin';
+  const isAssignee = task.assignedTo && task.assignedTo.toString() === req.user.id.toString();
+
+  if (!isAdmin && !isAssignee) {
+    return next(new AppError('Access denied. You can only update tasks assigned to you.', 403));
+  }
+
+  let updateData = req.body;
+
+  // If not admin, restrict fields
+  if (!isAdmin) {
+    // Regular users can only update status and status message
+    updateData = {
+      status: req.body.status,
+      statusMessage: req.body.statusMessage
+    };
+    
+    // Ensure status is valid
+    if (updateData.status && !['pending', 'in-progress', 'completed'].includes(updateData.status)) {
+      delete updateData.status;
+    }
   }
 
   // Validate assigned user if provided
@@ -387,7 +406,7 @@ const updateTask = catchAsync(async (req, res, next) => {
 
   const updatedTask = await Task.findByIdAndUpdate(
     req.params.id,
-    req.body,
+    updateData,
     { new: true, runValidators: true }
   );
   // .populate('assignedTo', 'name email')

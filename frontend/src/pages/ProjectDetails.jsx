@@ -14,7 +14,10 @@ import {
   CheckCircle,
 } from 'lucide-react'
 
+import { useAuth } from '../context/AuthContext'
+
 const ProjectDetails = () => {
+  const { user: currentUser } = useAuth()
   const { id } = useParams()
   const [project, setProject] = useState(null)
   const [tasks, setTasks] = useState([])
@@ -112,15 +115,17 @@ const ProjectDetails = () => {
               {getStatusIcon(task.status)}
               <span className="ml-1">{task.status}</span>
             </span>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => handleDeleteTask(task._id)}
-                className="text-red-600 hover:text-red-800"
-                title="Delete task"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </div>
+            {currentUser?.role === 'admin' && (
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => handleDeleteTask(task._id)}
+                  className="text-red-600 hover:text-red-800"
+                  title="Delete task"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -170,22 +175,24 @@ const ProjectDetails = () => {
             <p className="text-sm text-gray-600 mt-1">{project.description}</p>
           </div>
         </div>
-        <div className="flex items-center space-x-3">
-          <Link
-            to={`/projects/${id}/edit`}
-            className="btn btn-secondary flex items-center"
-          >
-            <Edit className="h-4 w-4 mr-2" />
-            Edit
-          </Link>
-          <button
-            onClick={handleDeleteProject}
-            className="btn btn-danger flex items-center"
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Delete
-          </button>
-        </div>
+        {currentUser?.role === 'admin' && (
+          <div className="flex items-center space-x-3">
+            <Link
+              to={`/projects/${id}/edit`}
+              className="btn btn-secondary flex items-center"
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              Edit
+            </Link>
+            <button
+              onClick={handleDeleteProject}
+              className="btn btn-danger flex items-center"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Project Info */}
@@ -315,13 +322,15 @@ const ProjectDetails = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">All Tasks</h2>
-            <Link
-              to={`/tasks/new?projectId=${id}`}
-              className="btn btn-primary flex items-center"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Task
-            </Link>
+            {currentUser?.role === 'admin' && (
+              <Link
+                to={`/tasks/new?projectId=${id}`}
+                className="btn btn-primary flex items-center"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Task
+              </Link>
+            )}
           </div>
           
           {tasks.length === 0 ? (
@@ -331,13 +340,15 @@ const ProjectDetails = () => {
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">No tasks yet</h3>
               <p className="text-gray-600 mb-4">Create your first task for this project</p>
-              <Link
-                to={`/tasks/new?projectId=${id}`}
-                className="btn btn-primary"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Create Task
-              </Link>
+              {currentUser?.role === 'admin' && (
+                <Link
+                  to={`/tasks/new?projectId=${project._id}`}
+                  className="btn btn-primary"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Task
+                </Link>
+              )}
             </div>
           ) : (
             <div className="space-y-3">

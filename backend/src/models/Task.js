@@ -46,7 +46,8 @@ class Task {
       this.status = supabaseData.status;
       this.assignedTo = supabaseData.assigned_to || supabaseData.assignedTo;
       this.projectId = supabaseData.project_id || supabaseData.projectId;
-      this.createdBy = supabaseData.created_by || supabaseData.createdBy;
+      this.createdBy = supabaseData.created_by;
+      this.statusMessage = supabaseData.status_message || supabaseData.statusMessage || '';
       this.createdAt = supabaseData.created_at || supabaseData.createdAt;
       this.updatedAt = supabaseData.updated_at || supabaseData.updatedAt;
     }
@@ -66,7 +67,7 @@ class Task {
     
     const { data, error } = await supabase
       .from('tasks')
-      .select('*')
+      .select('*, assignedTo:users!tasks_assigned_to_fkey(*), createdBy:users!tasks_created_by_fkey(*), projectId:projects(*)')
       .eq('id', id)
       .maybeSingle();
     
@@ -81,7 +82,9 @@ class Task {
       process.env.SUPABASE_SERVICE_ROLE_KEY
     );
     
-    let supabaseQuery = supabase.from('tasks').select('*');
+    let supabaseQuery = supabase
+      .from('tasks')
+      .select('*, assignedTo:users!tasks_assigned_to_fkey(*), createdBy:users!tasks_created_by_fkey(*), projectId:projects(*)');
     
     if (query.projectId) supabaseQuery = supabaseQuery.eq('project_id', query.projectId);
     if (query.status) supabaseQuery = supabaseQuery.eq('status', query.status);
@@ -135,7 +138,8 @@ class Task {
       status: taskData.status || 'pending',
       project_id: taskData.projectId,
       created_by: taskData.createdBy,
-      assigned_to: taskData.assignedTo || null
+      assigned_to: taskData.assignedTo || null,
+      status_message: taskData.statusMessage || ''
     };
     
     const { data, error } = await supabase
@@ -167,6 +171,10 @@ class Task {
     if (mappedUpdate.assignedTo) {
       mappedUpdate.assigned_to = mappedUpdate.assignedTo;
       delete mappedUpdate.assignedTo;
+    }
+    if (mappedUpdate.statusMessage !== undefined) {
+      mappedUpdate.status_message = mappedUpdate.statusMessage;
+      delete mappedUpdate.statusMessage;
     }
     
     const { data, error } = await supabase

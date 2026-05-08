@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { tasksAPI, projectsAPI } from '../services/api'
+import { tasksAPI, projectsAPI, authAPI } from '../services/api'
 import toast from 'react-hot-toast'
-import { ArrowLeft, Save } from 'lucide-react'
+import { ArrowLeft, Save, User as UserIcon, Layout } from 'lucide-react'
 
 const CreateTask = () => {
   const navigate = useNavigate()
@@ -11,6 +11,7 @@ const CreateTask = () => {
   
   const [loading, setLoading] = useState(false)
   const [projects, setProjects] = useState([])
+  const [users, setUsers] = useState([])
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -20,15 +21,25 @@ const CreateTask = () => {
   })
 
   useEffect(() => {
-    fetchProjects()
+    fetchData()
   }, [])
 
-  const fetchProjects = async () => {
+  const fetchData = async () => {
     try {
-      const response = await projectsAPI.getProjects({ limit: 100 })
-      setProjects(response.data.data.projects)
+      const [projectsRes, usersRes] = await Promise.all([
+        projectsAPI.getProjects({ limit: 100 }),
+        authAPI.getAllUsers()
+      ])
+      
+      if (projectsRes.data.success) {
+        setProjects(projectsRes.data.data.projects)
+      }
+      if (usersRes.data.success) {
+        setUsers(usersRes.data.data.users)
+      }
     } catch (error) {
-      console.error('Error fetching projects:', error)
+      console.error('Error fetching data:', error)
+      toast.error('Failed to load form data')
     }
   }
 
@@ -52,7 +63,12 @@ const CreateTask = () => {
       const response = await tasksAPI.createTask(formData)
       if (response.data.success) {
         toast.success('Task created successfully')
-        navigate('/tasks')
+        // Redirect back to the project details if we came from there
+        if (initialProjectId) {
+          navigate(`/projects/${initialProjectId}`)
+        } else {
+          navigate('/tasks')
+        }
       }
     } catch (error) {
       console.error('Error creating task:', error)
@@ -62,7 +78,7 @@ const CreateTask = () => {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <button
           onClick={() => navigate(-1)}
@@ -74,21 +90,23 @@ const CreateTask = () => {
         <h1 className="text-2xl font-bold text-gray-900">Create New Task</h1>
       </div>
 
-      <div className="card">
-        <div className="card-body">
-          <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="card">
+          <div className="card-body space-y-4">
+            {/* Project Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Project
+              <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                <Layout className="h-4 w-4 mr-1 text-gray-400" />
+                Target Project
               </label>
               <select
                 name="projectId"
                 required
                 value={formData.projectId}
                 onChange={handleChange}
-                className="form-input"
+                className="form-input bg-gray-50"
               >
-                <option value="">Select a project</option>
+                <option value="">Select a project...</option>
                 {projects.map(project => (
                   <option key={project._id} value={project._id}>
                     {project.title}
@@ -97,6 +115,7 @@ const CreateTask = () => {
               </select>
             </div>
 
+            {/* Task Title */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Task Title
@@ -110,10 +129,11 @@ const CreateTask = () => {
                 value={formData.title}
                 onChange={handleChange}
                 className="form-input"
-                placeholder="Enter task title"
+                placeholder="e.g. Implement login API"
               />
             </div>
 
+            {/* Description */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Description
@@ -123,15 +143,16 @@ const CreateTask = () => {
                 required
                 minLength={10}
                 maxLength={1000}
-                rows={4}
+                rows={5}
                 value={formData.description}
                 onChange={handleChange}
                 className="form-input"
-                placeholder="What needs to be done?"
+                placeholder="Detailed explanation of the task..."
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+              {/* Status */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Status
@@ -147,34 +168,53 @@ const CreateTask = () => {
                   <option value="completed">Completed</option>
                 </select>
               </div>
-              
-              {/* Optional: Assigned To would go here, requires fetching all users */}
-            </div>
 
-            <div className="pt-4 flex justify-end space-x-3">
-              <button
-                type="button"
-                onClick={() => navigate('/tasks')}
-                className="btn btn-secondary"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn btn-primary flex items-center"
-              >
-                {loading ? (
-                  <div className="spinner h-4 w-4 mr-2 border-white"></div>
-                ) : (
-                  <Save className="h-4 w-4 mr-2" />
-                )}
-                Create Task
-              </button>
+              {/* Assigned To */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                  <UserIcon className="h-4 w-4 mr-1 text-gray-400" />
+                  Assign To
+                </label>
+                <select
+                  name="assignedTo"
+                  value={formData.assignedTo}
+                  onChange={handleChange}
+                  className="form-input"
+                >
+                  <option value="">Unassigned</option>
+                  {users.map(user => (
+                    <option key={user._id} value={user._id}>
+                      {user.name} ({user.email})
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-          </form>
+          </div>
         </div>
-      </div>
+
+        <div className="flex justify-end space-x-3">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="btn btn-secondary px-6"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn btn-primary flex items-center px-8 py-2.5 shadow-md hover:shadow-lg transition-shadow"
+          >
+            {loading ? (
+              <div className="spinner h-5 w-5 mr-2 border-white"></div>
+            ) : (
+              <Save className="h-5 w-5 mr-2" />
+            )}
+            Create Task
+          </button>
+        </div>
+      </form>
     </div>
   )
 }

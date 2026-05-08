@@ -54,7 +54,11 @@ const authorizeRoles = (...roles) => {
       return next(new AppError('Authentication required.', 401));
     }
 
-    if (!roles.includes(req.user.role)) {
+    const userRole = req.user.role ? req.user.role.toLowerCase() : '';
+    const allowedRoles = roles.map(role => role.toLowerCase());
+
+    if (!allowedRoles.includes(userRole)) {
+      console.log(`[AUTH] Access denied for user ${req.user.email}. Role: ${userRole}, Required: ${allowedRoles}`);
       return next(new AppError(
         `Access denied. ${req.user.role} role is not authorized to access this resource.`,
         403

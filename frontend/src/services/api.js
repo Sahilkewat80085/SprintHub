@@ -95,7 +95,7 @@ export const tasksAPI = {
   getTask: (id) => api.get(`/tasks/${id}`),
   createTask: (data) => api.post('/tasks', data),
   updateTask: (id, data) => api.put(`/tasks/${id}`, data),
-  updateTaskStatus: (id, status) => api.patch(`/tasks/${id}/status`, { status }),
+  updateTaskStatus: (id, data) => api.patch(`/tasks/${id}/status`, data),
   deleteTask: (id) => api.delete(`/tasks/${id}`),
   getTaskStats: () => api.get('/tasks/stats'),
 }

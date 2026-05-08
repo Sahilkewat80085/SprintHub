@@ -11,7 +11,10 @@ import {
   Users,
 } from 'lucide-react'
 
+import { useAuth } from '../context/AuthContext'
+
 const Projects = () => {
+  const { user: currentUser } = useAuth()
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -101,22 +104,24 @@ const Projects = () => {
               </span>
             </div>
             
-            <div className="flex items-center space-x-2">
-              <Link
-                to={`/projects/${project._id}/edit`}
-                className="text-blue-600 hover:text-blue-800"
-                title="Edit project"
-              >
-                <Edit className="h-4 w-4" />
-              </Link>
-              <button
-                onClick={() => handleDelete(project._id)}
-                className="text-red-600 hover:text-red-800"
-                title="Delete project"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </div>
+            {currentUser?.role === 'admin' && (
+              <div className="flex items-center space-x-2">
+                <Link
+                  to={`/projects/${project._id}/edit`}
+                  className="text-blue-600 hover:text-blue-800"
+                  title="Edit project"
+                >
+                  <Edit className="h-4 w-4" />
+                </Link>
+                <button
+                  onClick={() => handleDelete(project._id)}
+                  className="text-red-600 hover:text-red-800"
+                  title="Delete project"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -133,13 +138,15 @@ const Projects = () => {
             Manage your projects and track progress
           </p>
         </div>
-        <Link
-          to="/projects/new"
-          className="btn btn-primary flex items-center"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          New Project
-        </Link>
+        {currentUser?.role === 'admin' && (
+          <Link
+            to="/projects/new"
+            className="btn btn-primary flex items-center"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            New Project
+          </Link>
+        )}
       </div>
 
       {/* Filters */}
@@ -220,7 +227,7 @@ const Projects = () => {
               ? 'Try adjusting your search or filters'
               : 'Create your first project to get started'}
           </p>
-          {!searchTerm && !statusFilter && !priorityFilter && (
+          {!searchTerm && !statusFilter && !priorityFilter && currentUser?.role === 'admin' && (
             <Link
               to="/projects/new"
               className="btn btn-primary"

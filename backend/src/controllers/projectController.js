@@ -67,6 +67,11 @@ const { AppError } = require('../utils/errorHandler');
  *         description: Internal server error
  */
 const createProject = catchAsync(async (req, res, next) => {
+  // Only admin can create projects
+  if (req.user.role !== 'admin') {
+    return next(new AppError('Access denied. Only admins can create projects.', 403));
+  }
+
   const { title, description, priority, status, members } = req.body;
 
   // Validate members if provided
@@ -343,9 +348,9 @@ const updateProject = catchAsync(async (req, res, next) => {
     return next(new AppError('Project not found', 404));
   }
 
-  // Check permissions (only owner or admin can update)
-  if (req.user.role !== 'admin' && !project.isOwner(req.user.id)) {
-    return next(new AppError('Access denied. Only project owner can update the project.', 403));
+  // Only admin can update projects
+  if (req.user.role !== 'admin') {
+    return next(new AppError('Access denied. Only admins can update projects.', 403));
   }
 
   // Validate members if provided
@@ -406,9 +411,9 @@ const deleteProject = catchAsync(async (req, res, next) => {
     return next(new AppError('Project not found', 404));
   }
 
-  // Check permissions (only owner or admin can delete)
-  if (req.user.role !== 'admin' && !project.isOwner(req.user.id)) {
-    return next(new AppError('Access denied. Only project owner can delete the project.', 403));
+  // Only admin can delete projects
+  if (req.user.role !== 'admin') {
+    return next(new AppError('Access denied. Only admins can delete projects.', 403));
   }
 
   await Project.findByIdAndDelete(req.params.id);
