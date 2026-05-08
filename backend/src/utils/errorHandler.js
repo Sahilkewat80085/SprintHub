@@ -110,6 +110,13 @@ const globalErrorHandler = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
 
+  // Always log error to console for debugging
+  console.error('ERROR 💥', {
+    message: err.message,
+    stack: err.stack,
+    error: err
+  });
+
   if (process.env.NODE_ENV === 'development') {
     sendErrorDev(err, res);
   } else {

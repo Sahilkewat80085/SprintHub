@@ -105,9 +105,9 @@ const createTask = catchAsync(async (req, res, next) => {
     createdBy: req.user.id
   });
 
-  await task.populate('assignedTo', 'name email');
-  await task.populate('createdBy', 'name email');
-  await task.populate('projectId', 'title');
+  // await task.populate('assignedTo', 'name email');
+  // await task.populate('createdBy', 'name email');
+  // await task.populate('projectId', 'title');
 
   res.status(201).json({
     success: true,
@@ -206,13 +206,14 @@ const getTasks = catchAsync(async (req, res, next) => {
 
   const skip = (page - 1) * limit;
   
-  const tasks = await Task.find(filter)
-    .populate('assignedTo', 'name email')
-    .populate('createdBy', 'name email')
-    .populate('projectId', 'title')
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(parseInt(limit));
+  const tasks = await Task.find(filter, {
+    sort: { createdAt: -1 },
+    skip: parseInt(skip),
+    limit: parseInt(limit)
+  });
+  // .populate('assignedTo', 'name email')
+  // .populate('createdBy', 'name email')
+  // .populate('projectId', 'title')
 
   const totalTasks = await Task.countDocuments(filter);
 
@@ -271,10 +272,10 @@ const getTasks = catchAsync(async (req, res, next) => {
  *         description: Internal server error
  */
 const getTask = catchAsync(async (req, res, next) => {
-  const task = await Task.findById(req.params.id)
-    .populate('assignedTo', 'name email')
-    .populate('createdBy', 'name email')
-    .populate('projectId', 'title');
+  const task = await Task.findById(req.params.id);
+    // .populate('assignedTo', 'name email')
+    // .populate('createdBy', 'name email')
+    // .populate('projectId', 'title');
 
   if (!task) {
     return next(new AppError('Task not found', 404));
@@ -388,9 +389,10 @@ const updateTask = catchAsync(async (req, res, next) => {
     req.params.id,
     req.body,
     { new: true, runValidators: true }
-  ).populate('assignedTo', 'name email')
-    .populate('createdBy', 'name email')
-    .populate('projectId', 'title');
+  );
+  // .populate('assignedTo', 'name email')
+  //   .populate('createdBy', 'name email')
+  //   .populate('projectId', 'title');
 
   res.status(200).json({
     success: true,

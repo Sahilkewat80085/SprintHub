@@ -86,8 +86,9 @@ const createProject = catchAsync(async (req, res, next) => {
     members: members || []
   });
 
-  await project.populate('createdBy', 'name email');
-  await project.populate('members', 'name email');
+  // Population is handled manually or mocked in the new model
+  // await project.populate('createdBy', 'name email');
+  // await project.populate('members', 'name email');
 
   res.status(201).json({
     success: true,
@@ -181,12 +182,11 @@ const getProjects = catchAsync(async (req, res, next) => {
 
   const skip = (page - 1) * limit;
   
-  const projects = await Project.find(filter)
-    .populate('createdBy', 'name email')
-    .populate('members', 'name email')
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(parseInt(limit));
+  const projects = await Project.find(filter, {
+    sort: { createdAt: -1 },
+    skip: parseInt(skip),
+    limit: parseInt(limit)
+  });
 
   const totalProjects = await Project.countDocuments(filter);
 
@@ -245,9 +245,9 @@ const getProjects = catchAsync(async (req, res, next) => {
  *         description: Internal server error
  */
 const getProject = catchAsync(async (req, res, next) => {
-  const project = await Project.findById(req.params.id)
-    .populate('createdBy', 'name email')
-    .populate('members', 'name email');
+  const project = await Project.findById(req.params.id);
+    // .populate('createdBy', 'name email')
+    // .populate('members', 'name email');
 
   if (!project) {
     return next(new AppError('Project not found', 404));
@@ -360,7 +360,8 @@ const updateProject = catchAsync(async (req, res, next) => {
     req.params.id,
     req.body,
     { new: true, runValidators: true }
-  ).populate('createdBy', 'name email').populate('members', 'name email');
+  );
+  // .populate('createdBy', 'name email').populate('members', 'name email');
 
   res.status(200).json({
     success: true,

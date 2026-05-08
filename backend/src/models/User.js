@@ -97,6 +97,28 @@ class User {
     return data ? new User(data) : null;
   }
 
+  // Static method to find users by query
+  static async find(query = {}) {
+    const supabase = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+    
+    let supabaseQuery = supabase.from('users').select('*');
+    
+    // Handle specific query patterns used in controllers
+    if (query._id && query._id.$in) {
+      supabaseQuery = supabaseQuery.in('id', query._id.$in);
+    } else if (query._id) {
+      supabaseQuery = supabaseQuery.eq('id', query._id);
+    }
+    
+    const { data, error } = await supabaseQuery;
+    
+    if (error) throw error;
+    return data ? data.map(user => new User(user)) : [];
+  }
+
   // Static method to create user
   static async create(userData) {
     const supabase = createClient(

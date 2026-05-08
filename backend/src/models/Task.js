@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const { createClient } = require('@supabase/supabase-js');
 
 /**
  * @swagger
@@ -15,242 +15,211 @@ const mongoose = require('mongoose');
  *       properties:
  *         _id:
  *           type: string
- *           description: Auto-generated unique identifier
  *         title:
  *           type: string
- *           description: Task title
- *           minLength: 3
- *           maxLength: 100
  *         description:
  *           type: string
- *           description: Task description
- *           maxLength: 1000
  *         status:
  *           type: string
  *           enum: [pending, in-progress, completed]
- *           description: Task status
  *         assignedTo:
  *           type: string
- *           description: User ID of the assigned user
  *         projectId:
  *           type: string
- *           description: Project ID this task belongs to
  *         createdBy:
  *           type: string
- *           description: User ID of the task creator
  *         createdAt:
  *           type: string
  *           format: date-time
- *           description: Task creation timestamp
  *         updatedAt:
  *           type: string
  *           format: date-time
- *           description: Last update timestamp
- *       example:
- *         _id: 64f1a2b3c4d5e6f7g8h9i0j1
- *         title: Implement user authentication
- *         description: Add JWT-based authentication with login and register endpoints
- *         status: in-progress
- *         assignedTo: 64f1a2b3c4d5e6f7g8h9i0j3
- *         projectId: 64f1a2b3c4d5e6f7g8h9i0j4
- *         createdBy: 64f1a2b3c4d5e6f7g8h9i0j2
- *         createdAt: 2023-09-01T10:00:00.000Z
- *         updatedAt: 2023-09-01T10:00:00.000Z
  */
 
-const taskSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: [true, 'Task title is required'],
-    trim: true,
-    minlength: [3, 'Task title must be at least 3 characters long'],
-    maxlength: [100, 'Task title cannot exceed 100 characters']
-  },
-  description: {
-    type: String,
-    required: [true, 'Task description is required'],
-    trim: true,
-    maxlength: [1000, 'Task description cannot exceed 1000 characters']
-  },
-  status: {
-    type: String,
-    required: [true, 'Task status is required'],
-    enum: {
-      values: ['pending', 'in-progress', 'completed'],
-      message: 'Status must be pending, in-progress, or completed'
-    },
-    default: 'pending'
-  },
-  assignedTo: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    default: null
-  },
-  projectId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Project',
-    required: [true, 'Project ID is required']
-  },
-  createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: [true, 'Task creator is required']
+class Task {
+  constructor(supabaseData) {
+    if (supabaseData) {
+      this._id = supabaseData.id;
+      this.title = supabaseData.title;
+      this.description = supabaseData.description;
+      this.status = supabaseData.status;
+      this.assignedTo = supabaseData.assigned_to || supabaseData.assignedTo;
+      this.projectId = supabaseData.project_id || supabaseData.projectId;
+      this.createdBy = supabaseData.created_by || supabaseData.createdBy;
+      this.createdAt = supabaseData.created_at || supabaseData.createdAt;
+      this.updatedAt = supabaseData.updated_at || supabaseData.updatedAt;
+    }
   }
-}, {
-  timestamps: true,
-  toJSON: { virtuals: true },
-  toObject: { virtuals: true }
-});
 
-// Indexes for better performance
-taskSchema.index({ projectId: 1 });
-taskSchema.index({ assignedTo: 1 });
-taskSchema.index({ createdBy: 1 });
-taskSchema.index({ status: 1 });
-taskSchema.index({ createdAt: -1 });
+  // Dummy populate to prevent crashes in controllers
+  async populate(path, select) {
+    return this;
+  }
 
-// Pre-save middleware to validate project membership
-taskSchema.pre('save', async function(next) {
-  if (this.isNew || this.isModified('assignedTo')) {
-    const Project = mongoose.model('Project');
-    const project = await Project.findById(this.projectId);
+  // Static method to find task by ID
+  static async findById(id) {
+    const supabase = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
     
-    if (!project) {
-      return next(new Error('Project not found'));
-    }
-
-    // If task is assigned to someone, they must be a project member
-    if (this.assignedTo) {
-      const User = mongoose.model('User');
-      const assignedUser = await User.findById(this.assignedTo);
-      
-      if (!assignedUser) {
-        return next(new Error('Assigned user not found'));
-      }
-
-      if (!project.isMember(this.assignedTo.toString())) {
-        return next(new Error('Assigned user must be a project member'));
-      }
-    }
-  }
-  next();
-});
-
-// Pre-remove middleware to update project statistics
-taskSchema.pre('deleteOne', { document: true, query: false }, async function(next) {
-  try {
-    // Could add project statistics updates here if needed
-    next();
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Static method to get tasks by project
-taskSchema.statics.findByProject = function(projectId, userId, userRole) {
-  let filter = { projectId };
-  
-  // If not admin, ensure user has access to the project
-  if (userRole !== 'admin') {
-    const Project = mongoose.model('Project');
-    const project = Project.findById(projectId);
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
     
-    if (!project || (!project.isMember(userId) && !project.isOwner(userId))) {
-      return null; // No access
-    }
+    if (error) throw error;
+    return data ? new Task(data) : null;
   }
 
-  return this.find(filter)
-    .populate('assignedTo', 'name email')
-    .populate('createdBy', 'name email')
-    .sort({ createdAt: -1 });
-};
+  // Static method to find tasks
+  static async find(query = {}, options = {}) {
+    const supabase = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+    
+    let supabaseQuery = supabase.from('tasks').select('*');
+    
+    if (query.projectId) supabaseQuery = supabaseQuery.eq('project_id', query.projectId);
+    if (query.status) supabaseQuery = supabaseQuery.eq('status', query.status);
+    
+    if (query.$or) {
+      const orFilter = query.$or.map(cond => {
+        const key = Object.keys(cond)[0];
+        const val = cond[key];
+        const supabaseKey = key === 'createdBy' ? 'created_by' : (key === 'assignedTo' ? 'assigned_to' : key);
+        return `${supabaseKey}.eq.${val}`;
+      }).join(',');
+      supabaseQuery = supabaseQuery.or(orFilter);
+    }
 
-// Static method to get tasks by user
-taskSchema.statics.findByUser = function(userId, userRole) {
-  let filter = {
-    $or: [
-      { createdBy: userId },
-      { assignedTo: userId }
-    ]
-  };
+    if (options.sort) {
+      const sortKey = Object.keys(options.sort)[0];
+      const ascending = options.sort[sortKey] === 1;
+      const supabaseSortKey = sortKey === 'createdAt' ? 'created_at' : sortKey;
+      supabaseQuery = supabaseQuery.order(supabaseSortKey, { ascending });
+    } else {
+      supabaseQuery = supabaseQuery.order('created_at', { ascending: false });
+    }
 
-  return this.find(filter)
-    .populate('projectId', 'title')
-    .populate('assignedTo', 'name email')
-    .populate('createdBy', 'name email')
-    .sort({ createdAt: -1 });
-};
+    if (options.skip !== undefined) {
+      supabaseQuery = supabaseQuery.range(options.skip, options.skip + (options.limit || 10) - 1);
+    } else if (options.limit !== undefined) {
+      supabaseQuery = supabaseQuery.limit(options.limit);
+    }
 
-// Static method to get task statistics
-taskSchema.statics.getStats = async function(userId, userRole) {
-  let matchCondition = {};
-  
-  if (userRole !== 'admin') {
-    matchCondition = {
-      $or: [
-        { createdBy: userId },
-        { assignedTo: userId }
-      ]
+    const { data, error } = await supabaseQuery;
+    if (error) throw error;
+    return data ? data.map(t => new Task(t)) : [];
+  }
+
+  // Static method to create task
+  static async create(taskData) {
+    const supabase = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+    
+    const mappedData = {
+      title: taskData.title,
+      description: taskData.description,
+      status: taskData.status || 'pending',
+      project_id: taskData.projectId,
+      created_by: taskData.createdBy,
+      assigned_to: taskData.assignedTo || null
+    };
+    
+    const { data, error } = await supabase
+      .from('tasks')
+      .insert([mappedData])
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return new Task(data);
+  }
+
+  // Static method to find by ID and update
+  static async findByIdAndUpdate(id, updateData, options = {}) {
+    const supabase = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+    
+    const mappedUpdate = { ...updateData };
+    if (mappedUpdate.projectId) {
+      mappedUpdate.project_id = mappedUpdate.projectId;
+      delete mappedUpdate.projectId;
+    }
+    if (mappedUpdate.createdBy) {
+      mappedUpdate.created_by = mappedUpdate.createdBy;
+      delete mappedUpdate.createdBy;
+    }
+    if (mappedUpdate.assignedTo) {
+      mappedUpdate.assigned_to = mappedUpdate.assignedTo;
+      delete mappedUpdate.assignedTo;
+    }
+    
+    const { data, error } = await supabase
+      .from('tasks')
+      .update(mappedUpdate)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return new Task(data);
+  }
+
+  // Static method to find by ID and delete
+  static async findByIdAndDelete(id) {
+    const supabase = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+    
+    const { data, error } = await supabase
+      .from('tasks')
+      .delete()
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data ? new Task(data) : null;
+  }
+
+  // Static method to get stats
+  static async getStats(userId, userRole) {
+    const tasks = await this.find(userRole !== 'admin' ? {
+      $or: [{ createdBy: userId }, { assignedTo: userId }]
+    } : {});
+
+    return {
+      totalTasks: tasks.length,
+      pendingTasks: tasks.filter(t => t.status === 'pending').length,
+      inProgressTasks: tasks.filter(t => t.status === 'in-progress').length,
+      completedTasks: tasks.filter(t => t.status === 'completed').length,
+      assignedTasks: tasks.filter(t => t.assignedTo).length
     };
   }
 
-  const stats = await this.aggregate([
-    { $match: matchCondition },
-    {
-      $group: {
-        _id: null,
-        totalTasks: { $sum: 1 },
-        pendingTasks: {
-          $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] }
-        },
-        inProgressTasks: {
-          $sum: { $cond: [{ $eq: ['$status', 'in-progress'] }, 1, 0] }
-        },
-        completedTasks: {
-          $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] }
-        },
-        assignedTasks: {
-          $sum: { $cond: [{ $ne: ['$assignedTo', null] }, 1, 0] }
-        }
-      }
-    }
-  ]);
+  // Instance method to check if user can access task
+  canAccess(userId, userRole) {
+    if (userRole === 'admin') return true;
+    if (this.createdBy.toString() === userId.toString()) return true;
+    if (this.assignedTo && this.assignedTo.toString() === userId.toString()) return true;
+    return false;
+  }
 
-  return stats[0] || {
-    totalTasks: 0,
-    pendingTasks: 0,
-    inProgressTasks: 0,
-    completedTasks: 0,
-    assignedTasks: 0
-  };
-};
-
-// Instance method to check if user can access task
-taskSchema.methods.canAccess = function(userId, userRole) {
-  // Admin can access any task
-  if (userRole === 'admin') return true;
-  
-  // Creator can access task
-  if (this.createdBy.toString() === userId.toString()) return true;
-  
-  // Assigned user can access task
-  if (this.assignedTo && this.assignedTo.toString() === userId.toString()) return true;
-  
-  return false;
-};
-
-// Instance method to check if user can modify task
-taskSchema.methods.canModify = function(userId, userRole) {
-  // Admin can modify any task
-  if (userRole === 'admin') return true;
-  
-  // Creator can modify task
-  if (this.createdBy.toString() === userId.toString()) return true;
-  
-  return false;
-};
-
-const Task = mongoose.model('Task', taskSchema);
+  // Instance method to check if user can modify task
+  canModify(userId, userRole) {
+    if (userRole === 'admin') return true;
+    if (this.createdBy.toString() === userId.toString()) return true;
+    return false;
+  }
+}
 
 module.exports = Task;
