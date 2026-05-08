@@ -10,6 +10,7 @@ import ProjectDetails from './pages/ProjectDetails'
 import Tasks from './pages/Tasks'
 import AdminDashboard from './pages/AdminDashboard'
 import CreateProject from './pages/CreateProject'
+import EditProject from './pages/EditProject'
 import CreateTask from './pages/CreateTask'
 import LoadingSpinner from './components/LoadingSpinner'
 
@@ -83,6 +84,7 @@ function App() {
           <Route path="projects" element={<Projects />} />
           <Route path="projects/new" element={<CreateProject />} />
           <Route path="projects/:id" element={<ProjectDetails />} />
+          <Route path="projects/:id/edit" element={<EditProject />} />
           <Route path="tasks" element={<Tasks />} />
           <Route path="tasks/new" element={<CreateTask />} />
           <Route

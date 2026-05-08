@@ -116,6 +116,12 @@ class Task {
     return data ? data.map(t => new Task(t)) : [];
   }
 
+  // Static method to count documents
+  static async countDocuments(query = {}) {
+    const tasks = await this.find(query);
+    return tasks.length;
+  }
+
   // Static method to create task
   static async create(taskData) {
     const supabase = createClient(

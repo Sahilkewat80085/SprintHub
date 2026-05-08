@@ -135,8 +135,13 @@ class Project {
     const { data, error } = await supabaseQuery;
     
     if (error) {
-      // Handle missing members column gracefully
-      if (error.message.includes('column projects.members does not exist') && query.$or) {
+      // Handle missing members column gracefully (multiple possible error messages from Supabase/PostgREST)
+      const isMissingMembersError = 
+        error.message.includes('projects.members does not exist') || 
+        error.message.includes("'members' column of 'projects'") ||
+        error.code === 'PGRST204';
+
+      if (isMissingMembersError && query.$or) {
         console.warn('⚠️ members column missing, falling back to created_by only');
         // Retry without members filter
         const fallbackFilter = query.$or.filter(cond => !cond.members).map(cond => {
@@ -183,7 +188,12 @@ class Project {
       .single();
     
     if (error) {
-      if (error.message.includes('column "members" of relation "projects" does not exist')) {
+      const isMissingMembersError = 
+        error.message.includes('column "members"') || 
+        error.message.includes("'members' column") ||
+        error.code === 'PGRST204';
+
+      if (isMissingMembersError) {
         // Retry without members
         delete mappedData.members;
         const { data: retryData, error: retryError } = await supabase
@@ -226,7 +236,12 @@ class Project {
       .maybeSingle();
     
     if (error) {
-      if (error.message.includes('column "members" of relation "projects" does not exist')) {
+      const isMissingMembersError = 
+        error.message.includes('column "members"') || 
+        error.message.includes("'members' column") ||
+        error.code === 'PGRST204';
+
+      if (isMissingMembersError) {
         delete mappedUpdate.members;
         const { data: retryData, error: retryError } = await supabase
           .from('projects')

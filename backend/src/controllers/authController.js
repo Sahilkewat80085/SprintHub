@@ -273,7 +273,8 @@ const getMe = catchAsync(async (req, res, next) => {
  *         description: Internal server error
  */
 const getAllUsers = catchAsync(async (req, res, next) => {
-  const users = await User.find().sort({ createdAt: -1 });
+  const users = await User.find();
+  users.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   
   res.status(200).json({
     success: true,

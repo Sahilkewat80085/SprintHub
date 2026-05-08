@@ -21,7 +21,7 @@ router.post('/login', authLimiter, validateLogin, checkValidation, authControlle
 router.get('/me', verifyToken, authController.getMe);
 
 // Admin only routes
-router.get('/users', verifyToken, authorizeRoles('admin'), authController.getAllUsers);
+router.get('/users', verifyToken, authorizeRoles('admin', 'user'), authController.getAllUsers);
 router.delete('/users/:id', verifyToken, authorizeRoles('admin'), authController.deleteUser);
 
 module.exports = router;

@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { projectsAPI, authAPI } from '../services/api'
 import toast from 'react-hot-toast'
 import { ArrowLeft, Save, Users, X } from 'lucide-react'
 
-const CreateProject = () => {
+const EditProject = () => {
+  const { id } = useParams()
   const navigate = useNavigate()
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [users, setUsers] = useState([])
   const [formData, setFormData] = useState({
     title: '',
@@ -17,17 +19,37 @@ const CreateProject = () => {
   })
 
   useEffect(() => {
-    fetchUsers()
-  }, [])
+    fetchProjectAndUsers()
+  }, [id])
 
-  const fetchUsers = async () => {
+  const fetchProjectAndUsers = async () => {
     try {
-      const response = await authAPI.getAllUsers()
-      if (response.data.success) {
-        setUsers(response.data.data.users)
+      setLoading(true)
+      const [projectRes, usersRes] = await Promise.all([
+        projectsAPI.getProject(id),
+        authAPI.getAllUsers()
+      ])
+
+      if (projectRes.data.success) {
+        const project = projectRes.data.data.project
+        setFormData({
+          title: project.title,
+          description: project.description,
+          priority: project.priority,
+          status: project.status,
+          members: project.members || []
+        })
+      }
+
+      if (usersRes.data.success) {
+        setUsers(usersRes.data.data.users)
       }
     } catch (error) {
-      console.error('Error fetching users:', error)
+      console.error('Error fetching data:', error)
+      toast.error('Failed to load project details')
+      navigate('/projects')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -53,17 +75,25 @@ const CreateProject = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      setLoading(true)
-      const response = await projectsAPI.createProject(formData)
+      setSaving(true)
+      const response = await projectsAPI.updateProject(id, formData)
       if (response.data.success) {
-        toast.success('Project created successfully')
-        navigate('/projects')
+        toast.success('Project updated successfully')
+        navigate(`/projects/${id}`)
       }
     } catch (error) {
-      console.error('Error creating project:', error)
+      console.error('Error updating project:', error)
     } finally {
-      setLoading(false)
+      setSaving(false)
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="spinner h-8 w-8"></div>
+      </div>
+    )
   }
 
   return (
@@ -76,7 +106,7 @@ const CreateProject = () => {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </button>
-        <h1 className="text-2xl font-bold text-gray-900">Create New Project</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Edit Project</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -137,7 +167,7 @@ const CreateProject = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Initial Status
+                    Status
                   </label>
                   <select
                     name="status"
@@ -160,12 +190,12 @@ const CreateProject = () => {
           <div className="card">
             <div className="card-header flex items-center">
               <Users className="h-4 w-4 mr-2 text-gray-500" />
-              <h2 className="text-sm font-semibold text-gray-900">Add Members</h2>
+              <h2 className="text-sm font-semibold text-gray-900">Manage Members</h2>
             </div>
             <div className="card-body">
               <div className="max-h-80 overflow-y-auto space-y-2">
                 {users.length === 0 ? (
-                  <p className="text-xs text-gray-500 text-center py-4">Loading users...</p>
+                  <p className="text-xs text-gray-500 text-center py-4">No other users found</p>
                 ) : (
                   users.map(user => (
                     <label 
@@ -201,7 +231,7 @@ const CreateProject = () => {
               
               <div className="mt-4 pt-4 border-t">
                 <p className="text-xs text-gray-500">
-                  {formData.members.length} members selected
+                  {formData.members.length} members in project
                 </p>
               </div>
             </div>
@@ -210,21 +240,21 @@ const CreateProject = () => {
           <div className="flex flex-col space-y-3">
             <button
               type="submit"
-              disabled={loading}
+              disabled={saving}
               className="btn btn-primary w-full flex items-center justify-center py-3"
             >
-              {loading ? (
+              {saving ? (
                 <div className="spinner h-5 w-5 border-white"></div>
               ) : (
                 <>
                   <Save className="h-5 w-5 mr-2" />
-                  Create Project
+                  Save Changes
                 </>
               )}
             </button>
             <button
               type="button"
-              onClick={() => navigate('/projects')}
+              onClick={() => navigate(`/projects/${id}`)}
               className="btn btn-secondary w-full"
             >
               Cancel
@@ -236,4 +266,4 @@ const CreateProject = () => {
   )
 }
 
-export default CreateProject
+export default EditProject
