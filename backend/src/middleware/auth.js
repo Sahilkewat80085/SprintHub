@@ -90,7 +90,7 @@ const checkOwnership = (resourceField = 'createdBy') => {
 
     const ownerId = resource[resourceField];
     
-    if (!ownerId || !ownerId.equals(req.user._id)) {
+    if (!ownerId || ownerId.toString() !== req.user._id.toString()) {
       return next(new AppError(
         'Access denied. You can only access your own resources.',
         403
@@ -130,8 +130,8 @@ const checkProjectAccess = async (req, res, next) => {
     }
 
     // Check if user is owner or member
-    const isOwner = project.createdBy.equals(req.user._id);
-    const isMember = project.members.some(member => member.equals(req.user._id));
+    const isOwner = project.createdBy.toString() === req.user._id.toString();
+    const isMember = project.members.some(member => member.toString() === req.user._id.toString());
 
     if (!isOwner && !isMember) {
       return next(new AppError(

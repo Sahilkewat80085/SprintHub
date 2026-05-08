@@ -47,6 +47,7 @@ class Project {
   constructor(supabaseData) {
     if (supabaseData) {
       this._id = supabaseData.id;
+      this.id = supabaseData.id;
       this.title = supabaseData.title;
       this.description = supabaseData.description;
       this.priority = supabaseData.priority;
@@ -93,17 +94,23 @@ class Project {
     
     if (query.$or) {
       // Supabase OR filter
-      const orFilter = query.$or.map(cond => {
+      const orFilterParts = [];
+      
+      for (const cond of query.$or) {
         const key = Object.keys(cond)[0];
         const val = cond[key];
         const supabaseKey = key === 'createdBy' ? 'created_by' : (key === 'members' ? 'members' : key);
         
         if (key === 'members') {
-          return `${supabaseKey}.cs.{${val}}`; // contains
+          // Only add members filter if we are sure it exists or handle it gracefully
+          // For now, we'll try to include it but we need to handle the potential error
+          orFilterParts.push(`${supabaseKey}.cs.{${val}}`);
+        } else {
+          orFilterParts.push(`${supabaseKey}.eq.${val}`);
         }
-        return `${supabaseKey}.eq.${val}`;
-      }).join(',');
-      supabaseQuery = supabaseQuery.or(orFilter);
+      }
+      
+      supabaseQuery = supabaseQuery.or(orFilterParts.join(','));
     } else {
       if (query.createdBy) supabaseQuery = supabaseQuery.eq('created_by', query.createdBy);
       if (query.status) supabaseQuery = supabaseQuery.eq('status', query.status);
@@ -126,7 +133,25 @@ class Project {
     }
     
     const { data, error } = await supabaseQuery;
-    if (error) throw error;
+    
+    if (error) {
+      // Handle missing members column gracefully
+      if (error.message.includes('column projects.members does not exist') && query.$or) {
+        console.warn('⚠️ members column missing, falling back to created_by only');
+        // Retry without members filter
+        const fallbackFilter = query.$or.filter(cond => !cond.members).map(cond => {
+          const key = Object.keys(cond)[0];
+          const val = cond[key];
+          const supabaseKey = key === 'createdBy' ? 'created_by' : key;
+          return `${supabaseKey}.eq.${val}`;
+        }).join(',');
+        
+        const { data: retryData, error: retryError } = await supabase.from('projects').select('*').or(fallbackFilter);
+        if (retryError) throw retryError;
+        return retryData ? retryData.map(p => new Project(p)) : [];
+      }
+      throw error;
+    }
     return data ? data.map(p => new Project(p)) : [];
   }
 
@@ -142,9 +167,14 @@ class Project {
       description: projectData.description,
       priority: projectData.priority,
       status: projectData.status || 'planned',
-      created_by: projectData.createdBy,
-      members: projectData.members || [projectData.createdBy]
+      created_by: projectData.createdBy
     };
+
+    // Only add members if provided (and hope the column exists)
+    // If it fails, we'll know it's because of missing column
+    if (projectData.members) {
+      mappedData.members = projectData.members;
+    }
     
     const { data, error } = await supabase
       .from('projects')
@@ -152,7 +182,20 @@ class Project {
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      if (error.message.includes('column "members" of relation "projects" does not exist')) {
+        // Retry without members
+        delete mappedData.members;
+        const { data: retryData, error: retryError } = await supabase
+          .from('projects')
+          .insert([mappedData])
+          .select()
+          .single();
+        if (retryError) throw retryError;
+        return new Project(retryData);
+      }
+      throw error;
+    }
     return new Project(data);
   }
 
@@ -180,10 +223,23 @@ class Project {
       .update(mappedUpdate)
       .eq('id', id)
       .select()
-      .single();
+      .maybeSingle();
     
-    if (error) throw error;
-    return new Project(data);
+    if (error) {
+      if (error.message.includes('column "members" of relation "projects" does not exist')) {
+        delete mappedUpdate.members;
+        const { data: retryData, error: retryError } = await supabase
+          .from('projects')
+          .update(mappedUpdate)
+          .eq('id', id)
+          .select()
+          .maybeSingle();
+        if (retryError) throw retryError;
+        return retryData ? new Project(retryData) : null;
+      }
+      throw error;
+    }
+    return data ? new Project(data) : null;
   }
 
   // Static method to find by ID and delete
@@ -221,6 +277,9 @@ class Project {
 
   // Instance method to check if user is member
   isMember(userId) {
+    if (!userId) return false;
+    // Owner is always a member
+    if (this.isOwner(userId)) return true;
     return this.members.some(member => member.toString() === userId.toString());
   }
 

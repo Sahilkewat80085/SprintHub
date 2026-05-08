@@ -39,7 +39,7 @@ const validateProject = [
   
   body('members.*')
     .optional()
-    .isMongoId()
+    .isUUID()
     .withMessage('Each member must be a valid user ID')
 ];
 

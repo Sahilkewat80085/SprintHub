@@ -24,11 +24,11 @@ const validateTask = [
   
   body('assignedTo')
     .optional()
-    .isMongoId()
+    .isUUID()
     .withMessage('Assigned user must be a valid user ID'),
   
   body('projectId')
-    .isMongoId()
+    .isUUID()
     .withMessage('Project must be a valid project ID')
 ];
 

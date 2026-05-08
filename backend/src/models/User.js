@@ -54,6 +54,7 @@ class User {
   constructor(supabaseData) {
     if (supabaseData) {
       this._id = supabaseData.id;
+      this.id = supabaseData.id;
       this.name = supabaseData.name;
       this.email = supabaseData.email;
       this.password = supabaseData.password;

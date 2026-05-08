@@ -40,6 +40,7 @@ class Task {
   constructor(supabaseData) {
     if (supabaseData) {
       this._id = supabaseData.id;
+      this.id = supabaseData.id;
       this.title = supabaseData.title;
       this.description = supabaseData.description;
       this.status = supabaseData.status;

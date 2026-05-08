@@ -9,6 +9,8 @@ import Projects from './pages/Projects'
 import ProjectDetails from './pages/ProjectDetails'
 import Tasks from './pages/Tasks'
 import AdminDashboard from './pages/AdminDashboard'
+import CreateProject from './pages/CreateProject'
+import CreateTask from './pages/CreateTask'
 import LoadingSpinner from './components/LoadingSpinner'
 
 // Protected Route Component
@@ -79,8 +81,10 @@ function App() {
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="projects" element={<Projects />} />
+          <Route path="projects/new" element={<CreateProject />} />
           <Route path="projects/:id" element={<ProjectDetails />} />
           <Route path="tasks" element={<Tasks />} />
+          <Route path="tasks/new" element={<CreateTask />} />
           <Route
             path="admin"
             element={
