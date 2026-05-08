@@ -4,15 +4,15 @@ A high-performance, role-based project management system built for clarity, secu
 
 ---
 
-## 📸 Visual Overview
+## 📸 Project Showcase
 
-### Admin Command Center
-*Full oversight of workforce performance, global projects, and real-time task intelligence.*
-![Admin Panel](./docs/images/admin_panel.png)
-
-### Employee Dashboard
-*Personalized workspace for tracking assigned missions and submitting status updates.*
+### 👥 Employee Dashboard
+*A streamlined, personalized workspace where employees can track their assigned tasks, monitor deadlines, and submit real-time progress reports.*
 ![Employee Dashboard](./docs/images/dashboard.png)
+
+### 🛡️ Admin Command Center
+*The central intelligence hub for administrators to monitor the entire workforce, track global project health, and view live activity feeds.*
+![Admin Panel](./docs/images/admin_panel.png)
 
 ---
 
